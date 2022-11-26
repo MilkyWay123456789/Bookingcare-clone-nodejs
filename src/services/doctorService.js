@@ -11,8 +11,8 @@ let getTopDoctorHome=(limitInput)=>{
                     exclude:['password','image']
                 },
                 include:[
-                    {models:db.Allcode,as:'positionData',attributes:['valueEn','valueVi']},
-                    {models:db.Allcode,as:'genderData',attributes:['valueEn','valueVi']}
+                    {model:db.Allcode,as:'positionData',attributes:['valueEn','valueVi']},
+                    {model:db.Allcode,as:'genderData',attributes:['valueEn','valueVi']}
                 ],
                 raw:true,
                 nest:true
