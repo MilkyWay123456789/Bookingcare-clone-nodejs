@@ -1,6 +1,6 @@
 import db from '../models/index';
 require('dotenv').config();
-import _ from "lodash"
+import _, { reject } from "lodash"
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 let getTopDoctorHome = (limitInput) => {
@@ -150,7 +150,7 @@ let bulkCreateSchedule = (data) => {
                 }
 
                 //get all existing data
-                let existing = db.Schedule.findAll({
+                let existing = await db.Schedule.findAll({
                     where: { doctorId: data.doctorId, date: data.date },
                     attributes: ['timeType', 'date', 'doctorId', 'maxNumber'],
                     raw: true
@@ -168,7 +168,6 @@ let bulkCreateSchedule = (data) => {
                     return a.timeType === b.timeType && a.date === b.date;
                 });
 
-                console.log('check diffence', toCreate)
 
                 if (toCreate && toCreate.length > 0) {
                     await db.Schedule.bulkCreate(toCreate);
@@ -185,10 +184,38 @@ let bulkCreateSchedule = (data) => {
     })
 }
 
+let getScheduleDoctorsByDate = (doctorId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !date) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter"
+                })
+            } else {
+                let data = await db.Schedule.findAll({
+                    where: { doctorId: doctorId, date: date },
+                    raw: false
+                })
+
+                if (!data) data = [],
+
+                    resolve({
+                        errCode: 0,
+                        data: data
+                    })
+            }
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
 module.exports = {
     getTopDoctorHome: getTopDoctorHome,
     getAllDoctorsService: getAllDoctorsService,
     saveDetailInforDoctor: saveDetailInforDoctor,
     getDetailDoctorsById: getDetailDoctorsById,
     bulkCreateSchedule: bulkCreateSchedule,
+    getScheduleDoctorsByDate: getScheduleDoctorsByDate,
 }
