@@ -195,15 +195,14 @@ let getScheduleDoctorsByDate = (doctorId, date) => {
             } else {
                 let data = await db.Schedule.findAll({
                     where: { doctorId: doctorId, date: date },
-                    raw: false
                 })
 
-                if (!data) data = [],
+                if (!data) data = [];
 
-                    resolve({
-                        errCode: 0,
-                        data: data
-                    })
+                resolve({
+                    errCode: 0,
+                    data: data
+                })
             }
         } catch (e) {
             reject(e)
