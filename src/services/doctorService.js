@@ -53,83 +53,83 @@ let getAllDoctorsService = () => {
 
 let saveDetailInforDoctor = (inputData) => {
     return new Promise(async (resolve, reject) => {
-        if (!inputData.doctorId
-            || !inputData.contentHTML || !inputData.contentMarkdown
-            || !inputData.action || !inputData.selectedPrice
-            || !inputData.selectedPayment || !inputData.selectedProvince
-            || !inputData.nameClinic || !inputData.addressClinic
-            || !inputData.note
-        ) {
-            resolve({
-                errCode: 1,
-                errMessage: "Missing parameter"
-            })
-        }
-        else {
-            //upset to Markdown
-            if (inputData.action === 'CREATE') {
-                await db.Markdown.create({
-                    contentHTML: inputData.contentHTML,
-                    contentMarkdown: inputData.contentMarkdown,
-                    description: inputData.description,
-                    doctorId: inputData.doctorId
+        try {
+            if (!inputData.doctorId
+                || !inputData.contentHTML || !inputData.contentMarkdown
+                || !inputData.action || !inputData.selectedPrice
+                || !inputData.selectedPayment || !inputData.selectedProvince
+                || !inputData.nameClinic || !inputData.addressClinic
+                || !inputData.note
+            ) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing parameter"
                 })
             }
             else {
-                if (inputData.action === 'EDIT') {
-                    let doctorMarkdown = await db.Markdown.findOne({
-                        where: { doctorId: inputData.doctorId },
-                        raw: false
+                //upset to Markdown
+                if (inputData.action === 'CREATE') {
+                    await db.Markdown.create({
+                        contentHTML: inputData.contentHTML,
+                        contentMarkdown: inputData.contentMarkdown,
+                        description: inputData.description,
+                        doctorId: inputData.doctorId
                     })
-                    if (doctorMarkdown) {
-                        doctorMarkdown.contentHTML = inputData.contentHTML;
-                        doctorMarkdown.contentMarkdown = inputData.contentMarkdown;
-                        doctorMarkdown.description = inputData.description;
-                        doctorMarkdown.updateAt = new Date();
-                        await doctorMarkdown.save();
+                }
+                else {
+                    if (inputData.action === 'EDIT') {
+                        let doctorMarkdown = await db.Markdown.findOne({
+                            where: { doctorId: inputData.doctorId },
+                            raw: false
+                        })
+                        if (doctorMarkdown) {
+                            doctorMarkdown.contentHTML = inputData.contentHTML;
+                            doctorMarkdown.contentMarkdown = inputData.contentMarkdown;
+                            doctorMarkdown.description = inputData.description;
+                            doctorMarkdown.updateAt = new Date();
+                            await doctorMarkdown.save();
+                        }
                     }
                 }
-            }
 
-            //upset to Doctor_Infor table
-            let doctor_infor = db.Doctor_Infor.findOne({
-                where: { doctorId: inputData.doctorId },
-                raw: false
-            })
+                //upset to Doctor_Infor table
+                let doctorInfor = db.Doctor_Infor.findOne({
+                    where: { doctorId: inputData.doctorId },
+                    raw: false
+                })
 
-            // !inputData.selectedPrice
-            // || !inputData.selectedPayment || !inputData.selectedProvince
-            // || !inputData.nameClinic || !inputData.addressClinic
-            // || !inputData.note
+                if (doctorInfor) {
+                    //update
+                    doctorInfor.doctorId = inputData.doctorId;
+                    doctorInfor.priceId = inputData.selectedPrice;
+                    doctorInfor.provinceId = inputData.selectedProvince;
+                    doctorInfor.paymentId = inputData.selectedPayment;
+                    doctorInfor.nameClinic = inputData.nameClinic;
+                    doctorInfor.addressClinic = inputData.addressClinic;
+                    doctorInfor.note = inputData.note;
+                    await doctorInfor.save()
+                } else {
+                    //create
+                    await db.Doctor_Infor.create({
+                        doctorId: inputData.doctorId,
+                        priceId: inputData.selectedPrice,
+                        provinceId: inputData.selectedProvince,
+                        paymentId: inputData.selectedPayment,
+                        nameClinic: inputData.nameClinic,
+                        addressClinic: inputData.addressClinic,
+                        note: inputData.note,
+                    })
+                }
 
-            if (doctor_infor) {
-                //update
-                doctor_infor.doctorId = inputData.doctorId;
-                doctor_infor.priceId = inputData.selectedPrice;
-                doctor_infor.provinceId = inputData.selectedProvince;
-                doctor_infor.paymentId = inputData.selectedPayment;
-                doctor_infor.nameClinic = inputData.nameClinic;
-                doctor_infor.addressClinic = inputData.addressClinic;
-                doctor_infor.note = inputData.note;
-                await doctor_infor.save();
-            } else {
-                //create
-                await db.Doctor_Infor.create({
-                    doctorId: inputData.doctorId,
-                    priceId: inputData.selectedPrice,
-                    provinceId: inputData.selectedProvince,
-                    paymentId: inputData.selectedPayment,
-                    nameClinic: inputData.nameClinic,
-                    addressClinic: inputData.addressClinic,
-                    note: inputData.note,
+                resolve({
+                    errCode: 0,
+                    errMessage: "Save infor data succeed"
                 })
             }
-
-            resolve({
-                errCode: 0,
-                errMessage: "Save infor data succeed"
-            })
+        } catch (e) {
+            reject(e)
         }
+
     })
 }
 
@@ -151,6 +151,17 @@ let getDetailDoctorsById = (inputId) => {
                     include: [
                         { model: db.Markdown, attributes: ['description', 'contentHTML', 'contentMarkdown'] },
                         { model: db.Allcode, as: 'positionData', attributes: ['valueEn', 'valueVi'] },
+                        {
+                            model: db.Doctor_Infor,
+                            attributes: {
+                                exclude: ['id', 'doctorId']
+                            },
+                            include: [
+                                { model: db.Allcode, as: 'priceTypeData', attributes: ['valueEn', 'valueVi'] },
+                                { model: db.Allcode, as: 'paymentTypeData', attributes: ['valueEn', 'valueVi'] },
+                                { model: db.Allcode, as: 'provinceTypeData', attributes: ['valueEn', 'valueVi'] },
+                            ]
+                        },
                     ],
                     raw: false,
                     nest: true
