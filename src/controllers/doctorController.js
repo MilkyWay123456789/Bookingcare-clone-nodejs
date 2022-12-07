@@ -80,9 +80,22 @@ let getScheduleDoctorsByDate = async (req, res) => {
     }
 }
 
-let getExtraInforDoctorsById=async(req,res)=>{
+let getExtraInforDoctorsById = async (req, res) => {
     try {
         let infor = await doctorService.getExtraInforDoctorsById(req.query.doctorId);
+        return res.status(200).json(infor);
+    } catch (e) {
+        console.log(e)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: "Error from server..."
+        })
+    }
+}
+
+let getProfileDoctorsById = async (req, res) => {
+    try {
+        let infor = await doctorService.getProfileDoctorsById(req.query.doctorId);
         return res.status(200).json(infor);
     } catch (e) {
         console.log(e)
@@ -100,5 +113,6 @@ module.exports = {
     getDetailDoctorsById: getDetailDoctorsById,
     bulkCreateSchedule: bulkCreateSchedule,
     getScheduleDoctorsByDate: getScheduleDoctorsByDate,
-    getExtraInforDoctorsById:getExtraInforDoctorsById
+    getExtraInforDoctorsById: getExtraInforDoctorsById,
+    getProfileDoctorsById: getProfileDoctorsById
 }
