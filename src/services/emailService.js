@@ -18,8 +18,16 @@ let sendSimpleEmail = async (dataSend) => {
         from: '"HT-Creater 👻" <tienph.19th@sv.dla.edu.vn>', // sender address
         to: dataSend.receiverEmail, // list of receivers
         subject: "Thông tin đặt lịch khám bệnh", // Subject line
-        html: `
-        <h3>Xin chào ${dataSend.patientName}!</h3>
+        html: getBodyHTMLEmail(dataSend),
+    });
+
+}
+
+let getBodyHTMLEmail = (dataSend) => {
+    let result = ''
+    if (dataSend.language === 'vi') {
+        result =
+            `<h3>Xin chào ${dataSend.patientName}!</h3>
         <p>Bạn nhận được Email này vì đã đặt lịch khám bệnh online trên HT-Creater</p>
         <p>Thông tin đặt lịch khám bệnh:</p>
         <div><b>Thời gian: ${dataSend.time}</b></div>
@@ -28,9 +36,23 @@ let sendSimpleEmail = async (dataSend) => {
         <p>Nếu các thông tin trên là đúng sự thật, vui lòng click vào đường link bên dưới để xác nhận và hoàn tất thủ tục đặt lịch khám bệnh</p>
         <div><a href=${dataSend.rediractLink} target="_blank">Click here</a></div>
         <div>Xin chân thành cám ơn</div>
-        `, // html body
-    });
+        `
+    }
+    if (dataSend.language === 'en') {
+        result =
+            `
+        <h3>Dear ${dataSend.patientName}!</h3>
+        <p>You received this Email because you booked an online medical appointment on HT-Creater</p>
+        <p>Medical appointment information:</p>
+        <div><b>Time: ${dataSend.time}</b></div>
+        <div><b>Doctor: ${dataSend.doctorName}</b></div>
 
+        <p>If the above information is true, please click on the link below to confirm and complete the medical appointment procedure</p>
+        <div><a href=${dataSend.rediractLink} target="_blank">Click here</a></div>
+        <div>Thank you very much</div>
+        `
+    }
+    return result;
 }
 
 module.exports = {
