@@ -405,6 +405,43 @@ let getListPatientForDoctor = (doctorId, date) => {
     })
 }
 
+let sendRemedy = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.doctorId || !data.email || !data.patientId || !data.timeType) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter"
+                })
+            } else {
+                //update patient status
+                let appoinment = await db.Booking.findOne({
+                    where: {
+                        doctorId: data.doctorId,
+                        patientId: data.patientId,
+                        timeType: data.timeType,
+                        statusId: 'S2'
+                    },
+                    raw: false,
+                })
+                console.log('check', appoinment)
+                if (appoinment) {
+                    appoinment.statusId = 'S3';
+                    await appoinment.save();
+                }
+                //send email remedy
+
+                resolve({
+                    errCode: 0,
+                    data: data
+                })
+            }
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
 module.exports = {
     getTopDoctorHome: getTopDoctorHome,
     getAllDoctorsService: getAllDoctorsService,
@@ -414,5 +451,6 @@ module.exports = {
     getScheduleDoctorsByDate: getScheduleDoctorsByDate,
     getExtraInforDoctorsById: getExtraInforDoctorsById,
     getProfileDoctorsById: getProfileDoctorsById,
-    getListPatientForDoctor: getListPatientForDoctor
+    getListPatientForDoctor: getListPatientForDoctor,
+    sendRemedy: sendRemedy
 }
